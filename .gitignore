@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.eiq-agent/
+.ipynb_checkpoints/
+
+# Datasets + trained models — don't commit these
+*.parquet
+*.pkl
+
+# Secrets / local env — never commit your API key or CF service token
+.env
+*.env
