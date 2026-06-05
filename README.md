@@ -4,6 +4,8 @@ A collection of scripts and notebooks to help you get started on the **EverestQu
 
 EIQ is **agent-first**: the public SDK is [`everestapi`](https://pypi.org/project/everestapi/), and the fastest path is the one-paste agent setup in onboarding. These examples are the human-readable counterpart — open one, run the cells, make your first submission.
 
+[![Open the starter in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/everestquant/example-scripts/blob/main/himalayas/hello_eiq.ipynb)
+
 > **Closed beta.** The tournament runs on the **staging** environment, which is behind Cloudflare Access. You authenticate with an API key **and** a Cloudflare Access service token — both are filled into the **"Copy setup command"** in onboarding (*Install the SDK & submit your first prediction → Step 2 — Install & connect your agent*). When EIQ opens publicly, drop the token and point at the public site.
 
 ## Install
