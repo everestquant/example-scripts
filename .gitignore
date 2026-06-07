@@ -13,3 +13,6 @@ venv/
 # Secrets / local env — never commit your API key or CF service token
 .env
 *.env
+
+# macOS
+.DS_Store

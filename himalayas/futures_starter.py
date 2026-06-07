@@ -13,6 +13,7 @@ Usage:
     pip install lightgbm pandas pyarrow scikit-learn
     python examples/futures_starter.py
 """
+
 from __future__ import annotations
 
 import pickle
@@ -131,6 +132,6 @@ submission.to_parquet(pred_path)
 submission.to_csv(pred_path.with_suffix(".csv"))
 print(f"  Predictions saved: {pred_path} ({len(submission)} rows)")
 
-print(f"\nDone! Upload your model:")
+print("\nDone! Upload your model:")
 print(f"  client.upload_model('my-model', '{model_path}')")
-print(f"  client.submit_predictions('my-model', predictions=...)")
+print("  client.submit_predictions('my-model', predictions=...)")

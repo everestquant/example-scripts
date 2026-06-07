@@ -1,0 +1,7 @@
+name: lint
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  ruff:
+    uses: everestquant/.github/.github/workflows/reusable-lint.yml@main
