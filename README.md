@@ -20,7 +20,7 @@ pip install "everestapi>=0.2.1"
 2. Set them in your shell (or a local `.env` you don't commit):
    ```bash
    export EIQ_API_KEY="{your-key}"
-   export EIQ_BASE_URL="https://staging.everestquant.ai"
+   export EIQ_BASE_URL="https://staging.everesteer.ai"
    export CF_ACCESS_CLIENT_ID="{your-cf-id}"
    export CF_ACCESS_CLIENT_SECRET="{your-cf-secret}"
    ```
@@ -48,4 +48,4 @@ payout = 0.75 * CORR + 2.25 * AIMC
 ## Links
 
 - SDK on PyPI: <https://pypi.org/project/everestapi/> · source: <https://github.com/everestquant/everestapi-public>
-- Docs: <https://docs.everestquant.ai>
+- Docs: <https://docs.everesteer.ai>
