@@ -31,3 +31,13 @@ payout = 0.75 * CORR + 2.25 * AIMC
 - Lower-turnover models tend to score better over time.
 
 A full, runnable walkthrough lives in [`himalayas/hello_eiq.ipynb`](himalayas/hello_eiq.ipynb).
+
+## Research skills
+
+If your agent supports skills (e.g. Claude Code), [`himalayas/agents/skills/`](himalayas/agents/skills) holds a research workflow you can load:
+
+- [`eiq-research`](himalayas/agents/skills/eiq-research/SKILL.md) — the orchestrator: sequences the others for any "try a new idea" request.
+- [`eiq-experiment-design`](himalayas/agents/skills/eiq-experiment-design/SKILL.md) — plan and run scout→scale experiments in rounds.
+- [`eiq-model-implementation`](himalayas/agents/skills/eiq-model-implementation/SKILL.md) — write a custom training script for serverless GPU compute.
+- [`eiq-futures-submission`](himalayas/agents/skills/eiq-futures-submission/SKILL.md) — go live: create a model, submit, verify, and (optionally) stake.
+- [`eiq-report-research`](himalayas/agents/skills/eiq-report-research/SKILL.md) — write up results and generate the standard plots.
