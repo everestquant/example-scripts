@@ -14,6 +14,16 @@ EIQ is **agent-first**: the public SDK is [`everestapi`](https://pypi.org/projec
 pip install "everestapi>=0.2.1"
 ```
 
+## Connect your agent (one command)
+
+Want Claude Code (or any agent that reads `~/.claude.json`) to drive the tools directly? Paste onboarding's **Copy setup command** to export your credentials, then run the installer from the cloned repo:
+
+```bash
+curl -sL https://everesteer.ai/install-claude-mcp.sh | bash   # or: bash install-claude-mcp.sh
+```
+
+It registers the `eiq` MCP server (`python -m everestapi.mcp`) under your user scope, prompting for any credential the setup command didn't already export. Restart Claude Code and your agent has the tools.
+
 ## Quickstart
 
 1. In onboarding, click **Copy setup command** — it contains your API key, base URL, and Cloudflare Access service token.
