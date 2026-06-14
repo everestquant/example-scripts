@@ -1,7 +1,21 @@
 name: lint
+
+# Self-contained ruff lint (public repo can't call the private org reusable
+# workflow — the prior caller was silently failing at startup). Uses the
+# repo's ruff.toml.
+
 on: [pull_request]
-permissions:
-  contents: read
+
 jobs:
   ruff:
-    uses: everestquant/.github/.github/workflows/reusable-lint.yml@main
+    name: ruff
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff
+      - run: ruff check .
