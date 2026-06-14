@@ -1,0 +1,71 @@
+name: Claude Security Review
+
+on:
+  pull_request:
+    branches: ['**']
+
+concurrency:
+  group: claude-security-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  # Gate the security review on the other PR-required workflows finishing first,
+  # so the bot's APPROVED review (and auto-merge enablement on risk:low) are
+  # the final action on the PR. If the upstream checks finish red, this still
+  # proceeds — the bot review is independent signal — but auto-merge then
+  # waits on the failing required check and never fires.
+  wait-for-ci:
+    name: Wait for other CI workflows
+    runs-on: ubuntu-latest
+    permissions:
+      checks: read
+    timeout-minutes: 20
+    steps:
+      - name: Poll PR head check-runs until upstream workflows complete
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          # Check-run names to wait for — must match the strings GitHub
+          # reports (verify with `gh pr checks <n>`). Keep in sync with
+          # required_status_checks in the branch protection ruleset.
+          # example-scripts runs the secret-free subset of eiq-platform's
+          # checks — no "Tournament API regression tests" here.
+          REQUIRED_CHECKS: |
+            semgrep / Semgrep (SAST)
+            trufflehog / TruffleHog (secrets)
+        run: |
+          set -euo pipefail
+          echo "Waiting for upstream checks on $SHA"
+          while :; do
+            mapfile -t completed < <(
+              gh api -H "Accept: application/vnd.github+json" \
+                --paginate "/repos/$REPO/commits/$SHA/check-runs?per_page=100" \
+                --jq '.check_runs[] | select(.status=="completed") | .name'
+            )
+            pending=()
+            while IFS= read -r name; do
+              [ -z "$name" ] && continue
+              if ! printf '%s\n' "${completed[@]:-}" | grep -Fxq "$name"; then
+                pending+=("$name")
+              fi
+            done <<< "$REQUIRED_CHECKS"
+            if [ "${#pending[@]}" -eq 0 ]; then
+              echo "All upstream checks complete."
+              break
+            fi
+            echo "Still pending: ${pending[*]}"
+            sleep 15
+          done
+
+  claude-security:
+    needs: wait-for-ci
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+    uses: everestquant/.github/.github/workflows/claude-security-review.yml@main
+    secrets:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      CLAUDE_REVIEW_APP_ID: ${{ secrets.CLAUDE_REVIEW_APP_ID }}
+      CLAUDE_REVIEW_APP_PRIVATE_KEY: ${{ secrets.CLAUDE_REVIEW_APP_PRIVATE_KEY }}

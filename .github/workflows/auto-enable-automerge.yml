@@ -1,0 +1,58 @@
+name: Auto-enable PR auto-merge
+
+# When a PR is opened (or reopened, or marked ready for review) by a trusted
+# author, automatically enable squash-auto-merge. The PR then lands as soon
+# as required checks are green and an approving review is in (either the
+# bot's auto-APPROVE on risk:low, the bot's /ship-attested APPROVE, or a
+# peer review).
+#
+# Without this, `allow_auto_merge: true` at the repo level only PERMITS
+# auto-merge — engineers still had to remember to click "Enable auto-merge"
+# on every PR. This closes that gap for the trusted-authors set; external
+# or new-contributor PRs still require a manual merge gate (intentional).
+#
+# Skipped for draft PRs. `ready_for_review` covers the "draft → ready"
+# transition.
+#
+# CRITICAL: this workflow mints an `everestquant-security-bot` App token
+# (org secrets `CLAUDE_REVIEW_APP_ID` + `CLAUDE_REVIEW_APP_PRIVATE_KEY`,
+# same App used by `claude-security-review.yml`) and uses THAT for
+# `gh pr merge --auto --squash`. We deliberately do NOT use the workflow's
+# default `GITHUB_TOKEN`.
+#
+# Reason: when GH's auto-merge queue fires, the merge is attributed to
+# whoever called `enablePullRequestAutoMerge`. With `GITHUB_TOKEN` that's
+# `github-actions[bot]`, and per
+# https://docs.github.com/en/actions/security-for-github-actions/security-guides/automatic-token-authentication#using-the-github_token-in-a-workflow
+# events triggered by GITHUB_TOKEN do NOT create new workflow runs
+# (except `workflow_dispatch` / `repository_dispatch`). With the App
+# identity instead, downstream events fire normally.
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  pull-requests: write
+  contents: write        # enablePullRequestAutoMerge GraphQL mutation requires write access
+
+jobs:
+  enable:
+    if: |
+      !github.event.pull_request.draft
+      && contains(fromJSON('["mpprice","dberkeEQ","bf13ld5on"]'), github.event.pull_request.user.login)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mint everestquant-security-bot App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.CLAUDE_REVIEW_APP_ID }}
+          private-key: ${{ secrets.CLAUDE_REVIEW_APP_PRIVATE_KEY }}
+
+      - name: Enable squash auto-merge under App identity
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr merge "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --auto --squash

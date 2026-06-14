@@ -1,0 +1,13 @@
+name: TruffleHog
+
+on:
+  pull_request:
+    branches: ['**']
+
+jobs:
+  trufflehog:
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+    uses: everestquant/.github/.github/workflows/trufflehog.yml@main
