@@ -1,19 +1,19 @@
 ---
 name: eiq-report-research
-description: Turn a finished EIQ Himalayas (futures) experiment run into a durable, scientific write-up in experiment.md (abstract, motivation, method, results table, decisions, stopping rationale, findings, next steps) and generate/link the standard cumulative-CORR/EAC plot. Use after running EIQ futures experiments, or when asked to "write up the results", "produce a full report", "update experiment.md", or "generate the standard plot".
+description: Turn a finished Everesteer Himalayas (futures) experiment run into a durable, scientific write-up in experiment.md (abstract, motivation, method, results table, decisions, stopping rationale, findings, next steps) and generate/link the standard cumulative-CORR/EAC plot. Use after running Everesteer futures experiments, or when asked to "write up the results", "produce a full report", "update experiment.md", or "generate the standard plot".
 ---
 
-# EIQ Report Research
+# Everesteer Report Research
 
 Convert one or more experiment runs in your `experiments/` folder into a finished report
 a reader can follow end to end — what you tested, what won, why you stopped, and whether
 you'd stake on it. The goal is a short scientific paper, not a metrics dump.
 
-You own everything here: the `experiments/` folder, the `everestapi` SDK, the EIQ MCP
+You own everything here: the `experiments/` folder, the `everestapi` SDK, the Everesteer MCP
 tools, and the plotting/scoring helpers shipped in this example-scripts repo. There is no
 internal platform repo to call into.
 
-## Ground truth (EIQ Himalayas — futures)
+## Ground truth (Everesteer Himalayas — futures)
 
 - Tournament: **The Himalayas** (futures). Time unit is the **exped**.
 - Primary target: `target_everest_20`. Consensus benchmark: `ai_model`.
@@ -149,7 +149,7 @@ must improve first (e.g. recent EAC, cluster breadth, benchmark de-correlation).
 
 ## Step 4 — Generate the standard plot
 
-The standard EIQ plot is **cumulative CORR and cumulative EAC of the best model vs the
+The standard Everesteer plot is **cumulative CORR and cumulative EAC of the best model vs the
 `ai_model` benchmark, over expeds**, built from the run's out-of-sample predictions.
 
 If the example-scripts repo ships a plotting helper, use it, e.g.:
@@ -198,4 +198,4 @@ candidate and link each.
 - The per-cluster breakdown is present and interpreted.
 - The payout framing uses **0.75·CORR + 2.25·AIMC** (±25% cap) — never 0.50/2.50.
 - The "what we'd stake / why (or not yet)" conclusion is explicit.
-- No synthetic data: all metrics come from real EIQ predictions and scores.
+- No synthetic data: all metrics come from real Everesteer predictions and scores.

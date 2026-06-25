@@ -1,20 +1,20 @@
 ---
 name: eiq-model-implementation
 description: |
-  Write and validate the modeling code behind a new EIQ Himalayas (futures) model — either a templated built-in via MCP quick_train, or your own training script run on EIQ compute via MCP custom_train. Use when an idea needs real modeling code (a new model type, a custom fit/predict routine, an ensemble) rather than just a different hyperparameter sweep. Covers the fit/predict contract, leakage-safe validation, and the futures-specific patterns that move EAC/AIMC.
+  Write and validate the modeling code behind a new Everesteer Himalayas (futures) model — either a templated built-in via MCP quick_train, or your own training script run on Everesteer compute via MCP custom_train. Use when an idea needs real modeling code (a new model type, a custom fit/predict routine, an ensemble) rather than just a different hyperparameter sweep. Covers the fit/predict contract, leakage-safe validation, and the futures-specific patterns that move EAC/AIMC.
 ---
 
-# Implementing a Model for the EIQ Himalayas Tournament
+# Implementing a Model for the Everesteer Himalayas Tournament
 
-The Himalayas tournament asks you to rank global futures **chains** (grouped into **clusters**) at each **exped** against the `target_everest_20` target. This skill is about the *code* that produces those rankings: how to express a model so it runs cleanly on EIQ compute, and how to convince yourself the model is real before you put value behind it.
+The Himalayas tournament asks you to rank global futures **chains** (grouped into **clusters**) at each **exped** against the `target_everest_20` target. This skill is about the *code* that produces those rankings: how to express a model so it runs cleanly on Everesteer compute, and how to convince yourself the model is real before you put value behind it.
 
-You never touch any platform-internal repository. Everything here is built on the public `everestapi` SDK, the EIQ MCP tools, and the helper code in `example-scripts/` plus a `models/` directory you own.
+You never touch any platform-internal repository. Everything here is built on the public `everestapi` SDK, the Everesteer MCP tools, and the helper code in `example-scripts/` plus a `models/` directory you own.
 
 ## Two ways to produce a model
 
 1. **`quick_train` (templated).** Pick a built-in model family (LightGBM, XGBoost, ridge, MLP, …), pass a config, and the platform fits it for you. No code to write — go straight to `eiq-experiment-design`. Use this for baselines and for anything a standard learner handles well.
 
-2. **`custom_train` (your code).** When the modeling idea is not expressible as a templated config — a bespoke ensemble, a residualized target, a custom fit loop, an exotic learner — you write a training script, ship it to EIQ GPU/CPU compute with `custom_train`, and pull the fitted artifact back with `get_model_download_url`.
+2. **`custom_train` (your code).** When the modeling idea is not expressible as a templated config — a bespoke ensemble, a residualized target, a custom fit loop, an exotic learner — you write a training script, ship it to Everesteer GPU/CPU compute with `custom_train`, and pull the fitted artifact back with `get_model_download_url`.
 
 This skill focuses on case 2. Reach for it only when `quick_train` genuinely can't express what you want — extra moving parts mean extra ways to leak or break.
 
@@ -78,7 +78,7 @@ def fit(self, X, y, sample_weight=None):
 
 Keep custom models in a participant-owned `models/` directory (e.g. `models/everest_catboost.py`) so model code stays separate from experiment glue.
 
-## Running it on EIQ compute
+## Running it on Everesteer compute
 
 The flow with the SDK and MCP tools:
 

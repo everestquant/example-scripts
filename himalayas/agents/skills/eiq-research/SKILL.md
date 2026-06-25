@@ -1,27 +1,27 @@
 ---
 name: eiq-research
 description: >
-  Top-level orchestrator for EIQ Himalayas (futures) tournament research. Drives a
+  Top-level orchestrator for Everesteer Himalayas (futures) tournament research. Drives a
   new idea from hypothesis to a submitting model by sequencing four sibling skills:
   eiq-experiment-design, eiq-model-implementation, eiq-futures-submission, and
   eiq-report-research. Reach for this whenever the request is "try/test a new idea",
-  "run an experiment", "sweep configs", "compare models", "improve my EIQ scores",
-  or any open-ended "do EIQ futures research" task. It enforces scout-then-scale
-  discipline, benchmarks against the EIQ ai_model, optimizes EAC (the offline
+  "run an experiment", "sweep configs", "compare models", "improve my Everesteer scores",
+  or any open-ended "do Everesteer futures research" task. It enforces scout-then-scale
+  discipline, benchmarks against the Everesteer ai_model, optimizes EAC (the offline
   validation-time proxy for AIMC) as the experiment-selection metric, and treats
   per-exped stability as a diagnostic.
 ---
 
-# EIQ Research Orchestrator
+# Everesteer Research Orchestrator
 
-You are running research on **Himalayas**, EIQ's live agent-native *futures* tournament.
+You are running research on **Himalayas**, Everesteer's live agent-native *futures* tournament.
 (Alps, the equities tournament, is pre-launch — ignore it unless the user names it.)
 This skill does not do the work itself; it routes you through the four sibling skills
 in the right order and holds the connective tissue — defaults, gates, and handoffs —
 so a loose "try this idea" request lands as a submitted, documented model.
 
 You only have the **participant surface**: the `everestapi` SDK (`pip install everestapi`),
-the EIQ MCP server (`python -m everestapi.mcp`, tools prefixed `mcp__eiq__*`), datasets
+the Everesteer MCP server (`python -m everestapi.mcp`, tools prefixed `mcp__eiq__*`), datasets
 you download, and the helpers shipped in the public `example-scripts` repo. There is no
 internal platform source to read.
 
@@ -94,7 +94,7 @@ Execute round one exactly as the design specified.
 - Prefer `quick_train` for templated configs; reserve `custom_train` for the variants
   that need it. Poll with `get_job_status`; pull artifacts with `get_model_download_url`.
 - Score every config the same way: download the benchmark (`download_benchmark` /
-  `get_benchmarks`) and evaluate predictions against the EIQ **`ai_model`**. Compute
+  `get_benchmarks`) and evaluate predictions against the Everesteer **`ai_model`**. Compute
   CORR, **EAC**, and (where rounds have resolved) AIMC, and use
   `run_validation_diagnostics` for a sanity pass.
 - Rank by **EAC** — your contribution beyond the static benchmark, the offline
@@ -183,7 +183,7 @@ the design stage set (meaningful EAC and a real, non-overfit CORR). Then invoke
   embargo to avoid look-ahead — let the design skill set it; never substitute plain k-fold.
 - **Compute is metered.** Check `get_compute_credits` up front and let the budget bound
   the number of rounds.
-- **Real data only.** Everything comes from the downloaded EIQ datasets and the SDK/MCP —
+- **Real data only.** Everything comes from the downloaded Everesteer datasets and the SDK/MCP —
   never fabricate features, targets, or scores.
 
 ## Worked example
