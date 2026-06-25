@@ -39,7 +39,7 @@ payout = 0.75 * CORR + 2.25 * AIMC
 - Feature-neutralize to lift AIMC (reduce exposure to dominant feature groups).
 - Lower-turnover models tend to score better over time.
 
-A full, runnable walkthrough lives in [`himalayas/hello_eiq.ipynb`](himalayas/hello_eiq.ipynb).
+A full, runnable walkthrough lives in [`himalayas/hello_everesteer.ipynb`](himalayas/hello_everesteer.ipynb).
 
 ## Research skills
 
