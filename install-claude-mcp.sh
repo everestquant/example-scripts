@@ -42,7 +42,7 @@ need() {  # need VAR_NAME "Prompt label"
   fi
 }
 
-need EIQ_API_KEY "EIQ API key (eiq_…)"
+need EIQ_API_KEY "Everesteer API key (eiq_…)"
 ENV_ARGS=( --env "EIQ_API_KEY=$EIQ_API_KEY" --env "EIQ_BASE_URL=$BASE_URL" )
 
 # Staging sits behind Cloudflare Access — the service token is required there.
@@ -61,5 +61,5 @@ claude mcp add "$NAME" --scope user "${ENV_ARGS[@]}" -- "$PY" -m everestapi.mcp
 
 say ""
 say "✅ '$NAME' MCP registered (user scope, base $BASE_URL)."
-say "   Restart Claude Code, then ask it to use the EIQ tools."
+say "   Restart Claude Code, then ask it to use the Everesteer tools."
 say "   Research skills load from himalayas/agents/skills/ (see AGENTS.md)."

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-EIQ Futures Tournament — Starter Example
+Everesteer Futures Tournament — Starter Example
 
 Train a LightGBM model on the Himalayas (Futures) tournament dataset,
 evaluate on validation, and save predictions for submission.

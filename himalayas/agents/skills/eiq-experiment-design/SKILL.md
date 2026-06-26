@@ -1,9 +1,9 @@
 ---
 name: eiq-experiment-design
 description: >-
-  Plan, run, and iterate EIQ Himalayas (futures) experiments using the scout→scale
+  Plan, run, and iterate Everesteer Himalayas (futures) experiments using the scout→scale
   research loop. Clarify the idea, align a baseline against ai_model, write configs,
-  train via the EIQ MCP server (quick_train / custom_train), optimize EAC (the offline
+  train via the Everesteer MCP server (quick_train / custom_train), optimize EAC (the offline
   validation-time proxy for the live AIMC payout metric) as the primary
   experiment-selection metric, iterate in rounds, stop at a plateau, and scale the
   winner. Use
@@ -11,10 +11,10 @@ description: >-
   idea into a structured, multi-round research plan.
 ---
 
-# EIQ Experiment Design (Himalayas / Futures)
+# Everesteer Experiment Design (Himalayas / Futures)
 
-A repeatable research loop for the **Himalayas** futures tournament on the EIQ platform.
-You hold the `everestapi` SDK, the EIQ MCP server, your downloaded datasets, and the
+A repeatable research loop for the **Himalayas** futures tournament on the Everesteer platform.
+You hold the `everestapi` SDK, the Everesteer MCP server, your downloaded datasets, and the
 example-scripts helpers — that is all you need. Everything below is framed around those
 tools and a `configs/` + `experiments/` layout that **you own** in your own repo.
 

@@ -1,24 +1,24 @@
 ---
 name: eiq-futures-submission
 description: >
-  Deploy a model slot and submit per-chain predictions to the EIQ FUTURES (Himalayas)
+  Deploy a model slot and submit per-chain predictions to the Everesteer FUTURES (Himalayas)
   tournament, then verify and optionally stake. Use when asked to "submit futures
-  predictions", "deploy my EIQ model", "go live on Himalayas", "upload predictions",
-  "register a futures model", "check my round / scores", or "stake on an EIQ futures
+  predictions", "deploy my Everesteer model", "go live on Himalayas", "upload predictions",
+  "register a futures model", "check my round / scores", or "stake on an Everesteer futures
   model". Covers the full create -> predict -> submit_futures_predictions -> verify ->
-  monitor -> (optional) stake loop via the everestapi SDK and the EIQ MCP server.
+  monitor -> (optional) stake loop via the everestapi SDK and the Everesteer MCP server.
 ---
 
-# EIQ Futures Submission (Himalayas)
+# Everesteer Futures Submission (Himalayas)
 
-Get a model live on **The Himalayas**, EIQ's futures prediction tournament, and keep it
+Get a model live on **The Himalayas**, Everesteer's futures prediction tournament, and keep it
 submitting each round. Unlike a packaged-artifact tournament, the default Himalayas flow
 is **live prediction submission**: every round you score the live universe of futures
 **chains** and post those scores with `submit_futures_predictions`. There is also an
 optional artifact path (`upload_model`) if you would rather the platform run a trained
 `.pkl` on your behalf each round.
 
-You are a **participant**. Everything here uses the public `everestapi` SDK plus the EIQ
+You are a **participant**. Everything here uses the public `everestapi` SDK plus the Everesteer
 MCP server. There is no internal platform repo and no internal infra to reach into — any
 recurring submission job runs on **your own** machine/cron/systemd.
 
