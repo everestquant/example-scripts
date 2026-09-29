@@ -12,10 +12,10 @@ scripts, notebooks, and the agent contract in [`AGENTS.md`](AGENTS.md).
 1. Install the SDK, plus what the starters train with:
 
    ```bash
-   pip install "everestapi>=0.3.38" lightgbm scikit-learn pandas pyarrow cloudpickle
+   pip install "everestapi>=0.3.40" lightgbm scikit-learn pandas pyarrow cloudpickle
    ```
 
-   `0.3.38` is the floor these examples are written against.
+   `0.3.40` is the floor these examples are written against.
 
 2. Set your credentials. Onboarding's **Copy setup command** exports both for you, or do it by
    hand:

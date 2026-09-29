@@ -19,7 +19,7 @@ you predict every row of the `live` split and post those predictions with
 file is optional.
 
 You are a **participant**. Everything here uses the public `everestapi` SDK (floor
-`everestapi>=0.3.38`) plus the Everesteer MCP server. There is no internal platform repo and no
+`everestapi>=0.3.40`) plus the Everesteer MCP server. There is no internal platform repo and no
 internal infra to reach into. Any recurring submission job runs on **your own**
 machine/cron/systemd.
 

@@ -22,7 +22,7 @@ It produces:
                                   a daily submission is just the predictions
 
 Usage:
-    pip install "everestapi>=0.3.38" lightgbm scikit-learn pandas pyarrow cloudpickle
+    pip install "everestapi>=0.3.40" lightgbm scikit-learn pandas pyarrow cloudpickle
     export EIQ_API_KEY="..."               # from onboarding
     export EIQ_BASE_URL="https://api.everesteer.ai"
     python himalayas/futures_starter.py
