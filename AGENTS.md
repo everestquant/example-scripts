@@ -95,10 +95,10 @@ your own code:
 - **Keep your holdout out of the fit.** A job fits the **whole** train split unless told
   otherwise, so a holdout carved from its artifacts afterwards is in-sample. Pass
   `train_filter={"exped": {"cutoff_lt": <first exped of your embargo>}}`.
-- **Score it yourself.** Predict that holdout locally and compute CORR, the AIMC proxy and the
+- **Score it yourself.** Predict that holdout locally and compute FIT, the UNQ proxy and the
   round score from the live `explain_scoring` weights. Don't select on the job's own CV
   metrics: they are measured inside its folds, may not include every term the board scores,
-  and its AIMC is an estimate against a proxy.
+  and its UNQ is an estimate against a proxy.
 - **Wrap it yourself.** Don't use the `.pkl` a job returns as-is. Wrap it in your own
   cloudpickled `predict()` that reproduces the preprocessing in the job's `feature_manifest`.
 
@@ -189,7 +189,7 @@ pre-stake checklist.
 
 ## What you're optimizing
 
-Each round is scored on a weighted blend of CORR, AIMC and NCORR, measured out-of-sample on the
+Each round is scored on a weighted blend of FIT, UNQ and INOV, measured out-of-sample on the
 column the dataset declares as graded. **Read that name from `get_dataset_schema`
 (`primary_target`)** and predict it; it is not necessarily the first entry in the schema's
 `targets` list. In-sample fit earns nothing.
@@ -199,14 +199,18 @@ before, and no document, this one included, can tell you which term leads. Optim
 score rather than any single term: a model tuned on one leaves the rest untouched. Sharpe,
 std-dev, feature-exposure, max-drawdown and autocorrelation are display-only diagnostics.
 
-What the terms mean: **CORR** is rank correlation between your predictions and the realised
-forward return. **AIMC** is your contribution measured against a **benchmark model**:
-predictions that merely re-express the benchmark earn nothing. The benchmark is a series you can
-download and measure against offline (`download_benchmark("futures", "train")`), and
-`explain_scoring`'s `metrics.aimc` is the authority on it. **NCORR** is your neutralized
-correlation, measured after projecting out a fixed core feature set; the schema's
+What the terms mean: all three are **covariances** with the mean-centred target, computed per
+exped, so none of them is bounded by 1. **FIT** is a rank covariance: your predictions are
+ranked and mapped to a standard normal, and FIT is their covariance with the realised forward
+return. **UNQ** is the same covariance after the **benchmark model's** direction is removed from
+your predictions, so predictions that merely re-express the benchmark earn nothing; it is 0 on an
+exped where the benchmark itself lost. The benchmark is a series you can download and measure
+against offline (`download_benchmark("futures", "train")`), and `explain_scoring`'s
+`metrics.unq` is the authority on it. **INOV** is the same again with the equal-weight average of
+a fixed core feature set in place of the benchmark, so it pays for signal beyond what those
+features already carry; the schema's
 `core_feature_overlap` reports how many of those core features land inside each published
-feature set, and the membership is deliberately not published. `NCORR` is the name every runtime
+feature set, and the membership is deliberately not published. `INOV` is the name every runtime
 surface uses: the API, the MCP tools and the leaderboards.
 
 On top of that score, payout is scaled by a per-round **payout factor**: frozen when the round's
@@ -249,7 +253,7 @@ the `train` tool, metered, and worth previewing before you commit to it:
 
 ## Tips
 
-- **Ensembling across diverse targets** can add AIMC, optional, and you drive it: the trainer
+- **Ensembling across diverse targets** can add UNQ, optional, and you drive it: the trainer
   fits one target per job, so train a separate model per target (each metered, preview with
   the MCP `train` tool's `dry_run`) and blend the predictions yourself. The auxiliary targets
   are the rest of `get_dataset_schema`'s `targets` list; **which of them are near-duplicates
@@ -259,19 +263,19 @@ the `train` tool, metered, and worth previewing before you commit to it:
   on, you still submit a single prediction column, scored on the graded target.
   [`himalayas/01_explore_the_data.ipynb`](himalayas/01_explore_the_data.ipynb) prints that
   correlation matrix for the dataset you are on.
-- **Feature neutralization** can add AIMC the same way, by reducing a model's exposure to
+- **Feature neutralization** can add UNQ the same way, by reducing a model's exposure to
   dominant feature groups: project those features out of your predictions **per exped**
   (neutralization is cross-sectional) at a proportion you sweep, and watch what it costs in
-  CORR: a full neutralization that flattens CORR has removed the signal along with the
+  FIT: a full neutralization that flattens FIT has removed the signal along with the
   exposure. The [`eiq-model-implementation`](.claude/skills/eiq-model-implementation/SKILL.md)
-  skill carries the projection helper and the offline AIMC proxy that scores the sweep.
+  skill carries the projection helper and the offline UNQ proxy that scores the sweep.
 - Lower-turnover models tend to score better over time.
 - **A negative score on the practice board is not a verdict on your model.** `validation` covers
   a later period than `train`, separated by a gap, so a sound model can score negative there and
   positive on a `train` holdout. That period is simply harder to predict: nothing is inverted or
   sign-flipped to catch you out. Never respond by flipping the sign of your predictions: that
   fits the one period you can see and inverts on the next. Compare the terms instead, since raw
-  CORR negative with **NCORR** near zero or positive means the loss is core-feature exposure
+  FIT negative with **INOV** near zero or positive means the loss is core-feature exposure
   rather than your signal, and neutralising that exposure is the legitimate fix. Optimise for a
   model that generalises across periods, because every round is scored on one you have not seen.
 

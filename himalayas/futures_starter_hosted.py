@@ -11,7 +11,7 @@ every file you upload is produced here, from your own code.
     split unless told otherwise, which would put your holdout inside the fit.
     `train_filter` ends it at the first exped of the embargo instead.
   - The score is computed here, on that holdout, not read off the job. The
-    job's own CV numbers are measured differently and its AIMC is an estimate
+    job's own CV numbers are measured differently and its UNQ is an estimate
     against a proxy, so they are not what the board will say.
   - The model is wrapped here. What a job hands back has not always been the
     one shape the upload gate accepts, so this script never uses it as-is.
@@ -125,7 +125,7 @@ if status["status"] != "completed":
         f". See client.get_job_log({job_id!r}) for the lifecycle trail."
     )
 # The job also reports its own CV metrics under status["metrics"]. They are not
-# used here: they are measured inside the job's folds, and its AIMC is an
+# used here: they are measured inside the job's folds, and its UNQ is an
 # estimate against a proxy. The score that decides anything is step 5's.
 
 # =====================================================================
@@ -176,8 +176,9 @@ print(f"Artifact: {type(fitted).__qualname__} "
 # =====================================================================
 # 5. Score it on the holdout, here
 # =====================================================================
-# CORR is the rank correlation between predictions and the target, computed
-# within each exped. Pearson on ranks is Spearman.
+# Spearman rank correlation between predictions and the target, computed within
+# each exped (Pearson on ranks is Spearman). A quick proxy for FIT, not FIT
+# itself: FIT is a covariance (rank-gaussianized predictions with the centred target).
 def per_exped_corr(frame, pred_col):
     return frame.groupby(EXPED)[[pred_col, TARGET]].apply(
         lambda g: g[pred_col].rank().corr(g[TARGET].rank())
@@ -186,10 +187,10 @@ def per_exped_corr(frame, pred_col):
 
 holdout = holdout.assign(prediction=score(holdout))
 corr = per_exped_corr(holdout, "prediction")
-print(f"Holdout CORR {corr.mean():+.4f} | std {corr.std():.4f} | "
+print(f"Holdout Spearman {corr.mean():+.4f} | std {corr.std():.4f} | "
       f"sharpe {corr.mean() / corr.std():.2f} | {(corr > 0).mean():.0%} of expeds positive")
 
-# AIMC is measured against this benchmark model, so it is the bar to beat. Score
+# UNQ is measured against this benchmark model, so it is the bar to beat. Score
 # it on the same rows, the same way, so the comparison is like-for-like. A row is the
 # same row only when its id AND its exped agree: a benchmark built from an older
 # train file can share ids with this one on different expeds, and an id-only

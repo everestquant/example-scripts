@@ -1,7 +1,7 @@
 ---
 name: eiq-model-implementation
 description: |
-  Write and validate the modeling code behind a new Everesteer daily futures tournament model, either a templated built-in via MCP train(model=<preset>), or your own training script run on Everesteer compute via MCP train(model="custom", custom_model_fn=...). Use when an idea needs real modeling code (a new model type, a custom fit/predict routine, an ensemble) rather than just a different hyperparameter sweep. Covers the fit/predict contract, leakage-safe validation, and the patterns that move AIMC.
+  Write and validate the modeling code behind a new Everesteer daily futures tournament model, either a templated built-in via MCP train(model=<preset>), or your own training script run on Everesteer compute via MCP train(model="custom", custom_model_fn=...). Use when an idea needs real modeling code (a new model type, a custom fit/predict routine, an ensemble) rather than just a different hyperparameter sweep. Covers the fit/predict contract, leakage-safe validation, and the patterns that move UNQ.
 ---
 
 # Implementing a Model for the Everesteer Daily Tournament
@@ -266,7 +266,7 @@ assert isinstance(p, pd.Series) and len(p) == len(sub)
 assert p.index.equals(sub.index) and not p.isna().any()
 ```
 
-**Step 2. Sanity-bound the CORR.** Compute per-exped rank correlation against the target on a
+**Step 2. Sanity-bound the FIT.** Compute the per-exped Spearman correlation, a quick proxy for FIT, against the target on a
 *held-out* split, never the rows you trained on. That is not the downloadable `validation` split:
 it ships without targets and is scored server-side on the practice board. Carve an embargoed tail
 off the labeled `train` split instead, the same way `himalayas/02_train_and_submit.ipynb` does:
@@ -284,25 +284,25 @@ holdout = train[train["exped"].isin(holdout_expeds)].dropna(subset=[TARGET])
 m = MyEverestModel().fit(fit_rows[feats], fit_rows[TARGET])
 holdout = holdout.assign(prediction=m.predict(holdout[feats]))
 
-# CORR is computed within each exped, then averaged. Don't use EverestAPI.evaluate for
-# this: it pools every row into one correlation, which is not the per-exped CORR the
-# board scores.
+# Per-exped Spearman, then averaged: a quick proxy for FIT (FIT itself is a rank
+# covariance with the centred target). Don't use EverestAPI.evaluate for this: it pools every row
+# into one correlation, which is not a per-exped number like the one the board scores.
 corr = holdout.groupby("exped")[["prediction", TARGET]].apply(
     lambda g: g["prediction"].rank().corr(g[TARGET].rank())
 ).dropna()
-print(f"CORR {corr.mean():+.4f} | std {corr.std():.4f} | {(corr > 0).mean():.0%} of expeds positive")
+print(f"Spearman {corr.mean():+.4f} | std {corr.std():.4f} | {(corr > 0).mean():.0%} of expeds positive")
 ```
 
-A healthy futures model usually lands at a **small positive** CORR, on the order of a few
+A healthy futures model usually lands at a **small positive** FIT, on the order of a few
 hundredths. But one holdout is a noisy read, and the two tails mean very different things:
 
-- **CORR near zero or negative:** common, and not a verdict on its own. Per-exped CORR swings
+- **FIT near zero or negative:** common, and not a verdict on its own. Per-exped FIT swings
   widely, and some periods are simply harder to predict than others. It happens often on the
   `validation` practice board too. Rule out the mechanical causes first, a broken index join or a
   feature filter that dropped the columns you meant, and then look at whether the edge holds
-  across both halves of the holdout and how CORR compares with NCORR. Never flip the sign of your
+  across both halves of the holdout and how FIT compares with INOV. Never flip the sign of your
   predictions to fix it: that fits the one period you can see.
-- **CORR suspiciously high** (e.g. an order of magnitude above what the benchmark and the
+- **FIT suspiciously high** (e.g. an order of magnitude above what the benchmark and the
   leaderboard achieve): assume **leakage** until proven otherwise. The usual culprits are
   evaluating on training rows, leaking the target through a derived column, or an index that lets
   future expeds bleed in.
@@ -316,24 +316,25 @@ you've contaminated the estimate. Tune stopping inside a nested split, then repo
 played no role in fitting. Any per-feature standardization, target encoding, or neutralization
 must be fit on train only and *applied* to validation. Never re-fit there.
 
-## Patterns that move AIMC (and why)
+## Patterns that move UNQ (and why)
 
-The round score is a weighted blend of CORR, AIMC and NCORR. Call `explain_scoring` for the live
-weights; don't hardcode which term dominates. **AIMC** is your contribution over a benchmark
-model's predictions and **NCORR** is your neutralized correlation, measured against a fixed core
-feature set; on both, a merely-accurate model that re-expresses what the benchmark already says
+The round score is a weighted blend of FIT, UNQ and INOV. Call `explain_scoring` for the live
+weights; don't hardcode which term dominates. All three are covariances with the mean-centred
+target. **UNQ** is that covariance after the benchmark model's direction is removed from your
+rank-gaussianized predictions, and **INOV** is the same with the equal-weight average of a fixed
+core feature set in place of the benchmark; on both, a merely-accurate model that re-expresses what the benchmark already says
 pays little. That score is then scaled by a per-round **payout factor**: frozen when stakes lock at
 the end of the daily round, it is 1 below a fixed total-stake threshold and shrinks as the round's
 total locked stake grows past it, so it can differ round to round. The return is capped at **A
 times the stake**, with A the platform's `payout_cap` from `explain_scoring`. Stake returns
 arrive after 20 days, when the target is realised.
 
-**AIMC is measured against a benchmark you can download, so the offline proxy is a real one.**
-`explain_scoring`'s `metrics.aimc` reports it as your contribution over the benchmark model's
+**UNQ is measured against a benchmark you can download, so the offline proxy is a real one.**
+`explain_scoring`'s `metrics.unq` reports it as your contribution over the benchmark model's
 predictions, and `download_benchmark("futures", "train")` serves those predictions on the split
 your holdout comes from. Residualize your predictions against the benchmark per exped, then
-correlate the residual with the target. Treat it as a proxy still (the real number comes back
-after the round resolves), but not as an unobservable.
+correlate the residual with the target. Treat it as a proxy still: UNQ itself is a covariance,
+and the real number comes back after the round resolves. But it is not an unobservable.
 
 ```python
 from scipy.stats import spearmanr   # plus pandas as pd, numpy as np
@@ -358,7 +359,7 @@ def neutralize(preds, neutralizers, proportion=1.0):
     return pd.Series((y - proportion * projection).ravel(), index=preds.index)
 
 def contribution(df, pred_col, target_col=PRIMARY_TARGET, bench_col="benchmark"):
-    """AIMC proxy, per exped: residualize against the benchmark, correlate with the target."""
+    """UNQ proxy, per exped: residualize against the benchmark, correlate with the target."""
     out = {}
     for e, g in df.groupby(EXPED):
         g = g[g[bench_col].notna()]   # an all-NaN exped hands pinv a NaN matrix and raises
@@ -382,14 +383,14 @@ the benchmark for the proxy above, and against a feature block for the exposure 
 
 - **Residualize the target against the benchmark.** Train on the residual of the graded target
   after projecting out the benchmark series, so the model can only learn what the benchmark
-  misses. Raises AIMC directly, since the benchmark is what AIMC is measured against.
+  misses. Raises UNQ directly, since the benchmark is what UNQ is measured against.
 - **Neutralize predictions against the benchmark / heavy features.** OLS-project your raw scores
   onto the benchmark (or a few dominant feature exposures) and subtract the projection. Lowers
-  correlation to the reference, raising AIMC, usually at a modest CORR cost; tune the
+  correlation to the reference, raising UNQ, usually at a modest FIT cost; tune the
   neutralization proportion.
-  Note NCORR's own neutralization is a spectrally-anchored ridge against a frozen core feature set
-  whose membership is not published, so your own OLS residualization will not reproduce that
-  number.
+  INOV itself is not a neutralization: it is UNQ's covariance with the equal-weight average of a
+  frozen core feature set standing in for the benchmark, and that set's membership is not
+  published, so you cannot reproduce INOV exactly offline.
 - **Blend multiple targets.** The auxiliary targets (every entry in the schema's `targets` other
   than the graded one) carry related-but-distinct signal; a weighted blend can be steadier than
   chasing the graded target alone. Which auxiliaries are diverse and which are near-duplicates is
@@ -397,7 +398,7 @@ the benchmark for the proxy above, and against a feature block for the exposure 
   trusting numbers carried over from elsewhere. Any pair near correlation −1.0 are inverses of one
   signal; never include both raw.
 - **Bag / ensemble.** Average several seeds or row-subsamples to cut variance. Steadier rankings
-  translate to steadier AIMC across rounds, which matters more than a single hot exped.
+  translate to steadier UNQ across rounds, which matters more than a single hot exped.
 
 Each of these earns its keep only if it raises differentiated signal. Accuracy that everyone
 already has is nearly free on the payout formula.
@@ -418,7 +419,7 @@ already has is nearly free on the payout formula.
 - **Robustness over time, not over clusters.** There is no cluster axis on this panel, so
   the honest fragility check is temporal: split your holdout in half and confirm the edge
   survives in both. An edge that lives in one stretch of expeds is a regime artifact.
-  Per-exped CORR spread and the worst run of negative expeds are the numbers to look at,
+  Per-exped FIT spread and the worst run of negative expeds are the numbers to look at,
   alongside `run_validation_diagnostics`.
 - **Sample weighting has no grouping column to key on.** Inverse-frequency weighting by
   cluster or sector is not available here; if you weight, weight on something the panel

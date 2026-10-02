@@ -39,11 +39,13 @@ machine/cron/systemd.
   string order is time order.
 - The target realises over **20 days**, so a round's score (and any stake return) arrives
   about 20 days after the round.
-- Score is a weighted blend of CORR, AIMC and NCORR. Call `explain_scoring` for the live
+- Score is a weighted blend of FIT, UNQ and INOV. Call `explain_scoring` for the live
   weights; they are a live setting and have changed before, so do not assume which term
-  leads. AIMC is measured against a **benchmark model** (`download_benchmark("futures",
-  split)` serves its predictions), and NCORR is correlation after neutralizing against a fixed
-  core feature set. Re-expressing the benchmark scores poorly on both.
+  leads. All three are covariances with the mean-centred target: FIT on your rank-gaussianized
+  predictions, UNQ after removing the direction of a **benchmark model**
+  (`download_benchmark("futures", split)` serves its predictions), and INOV after removing the
+  direction of the equal-weight average of a fixed core feature set. Re-expressing the
+  benchmark scores poorly on both.
 - That score is then scaled by a per-round **payout factor**, frozen when the round's stake
   locks, and the return is **capped**: a round pays back at most **A times the stake**, with A
   the platform's `payout_cap`. `explain_scoring` reports both.
@@ -240,10 +242,10 @@ client.get_submission_status(tournament="futures", round=EXPED, model_id=MODEL_I
 client.get_scores(model_id=MODEL_ID, days=60)
 client.get_model_per_exped_breakdown(model_id=MODEL_ID)
 client.get_leaderboard(period="30d")
-client.explain_scoring()          # live weights of CORR, AIMC, NCORR and the payout factor
+client.explain_scoring()          # live weights of FIT, UNQ, INOV and the payout factor
 ```
 
-Via MCP: `eiq_get_submission_status`. A model with high CORR but flat AIMC and NCORR is
+Via MCP: `eiq_get_submission_status`. A model with high FIT but flat UNQ and INOV is
 echoing the benchmark and leaves part of the score untouched.
 
 ## Automated daily submission (your own infra)
@@ -311,10 +313,10 @@ call below as money-bearing.
 
 Pre-stake checklist:
 - [ ] **Operator has explicitly approved** staking this model, this amount.
-- [ ] Decision rests on **robust, resolved-round AIMC** across **many resolved rounds**, never
+- [ ] Decision rests on **robust, resolved-round UNQ** across **many resolved rounds**, never
       one hot round. The 20-day target makes consecutive daily rounds heavily overlapping, so
       independent evidence accumulates slowly.
-- [ ] CORR is not carrying the model alone (AIMC meaningfully positive).
+- [ ] FIT is not carrying the model alone (UNQ meaningfully positive).
 - [ ] You confirmed the wallet address with the operator.
 
 Tools (only after the above):

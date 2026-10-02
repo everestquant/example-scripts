@@ -170,7 +170,7 @@ it reads the same way.
 |---|---|
 | [`eiq-research`](.claude/skills/eiq-research/SKILL.md) | The orchestrator. Sequences the other four for any "try this idea" request |
 | [`eiq-experiment-design`](.claude/skills/eiq-experiment-design/SKILL.md) | Plans and runs scout→scale experiments in rounds |
-| [`eiq-model-implementation`](.claude/skills/eiq-model-implementation/SKILL.md) | Writes a custom training script for hosted compute; also carries the offline AIMC proxy |
+| [`eiq-model-implementation`](.claude/skills/eiq-model-implementation/SKILL.md) | Writes a custom training script for hosted compute; also carries the offline UNQ proxy |
 | [`eiq-futures-submission`](.claude/skills/eiq-futures-submission/SKILL.md) | Goes live: create a model, submit into today's round, verify, optionally stake |
 | [`eiq-report-research`](.claude/skills/eiq-report-research/SKILL.md) | Writes up results and generates the standard plots |
 
@@ -204,12 +204,12 @@ local path, [`futures_starter_hosted.py`](himalayas/futures_starter_hosted.py) t
 #### A negative practice score is not a broken model
 
 `validation` covers a later period than `train`, with a gap between them, so a sound model can
-score **negative** CORR on the practice board and positive on a holdout cut from `train`. The
+score **negative** FIT on the practice board and positive on a holdout cut from `train`. The
 board is display-only, so it costs you nothing. That period is simply harder to predict:
 nothing is inverted or sign-flipped to catch you out, so don't price in a trap that isn't there.
 
 Don't flip the sign in response: that fits the one period you can see and inverts on the next.
-Read the terms apart instead. Raw CORR negative with **NCORR** near zero or positive means the
+Read the terms apart instead. Raw FIT negative with **INOV** near zero or positive means the
 loss came from core-feature exposure rather than from your signal, and neutralising that
 exposure is the real fix. What you want is a model that generalises across periods, since every
 round is scored on one you haven't seen.
@@ -285,15 +285,19 @@ reference. Never submit it: its ids match nothing.
 
 ## How you're ranked
 
-Each round is scored on a weighted blend of CORR, AIMC and NCORR, measured out-of-sample on the
+Each round is scored on a weighted blend of FIT, UNQ and INOV, measured out-of-sample on the
 graded column.
 
-- **CORR** is rank correlation against the realised forward return.
-- **AIMC** is your contribution over a **benchmark model**, so predictions that merely
-  re-express the benchmark earn nothing. You can download the benchmark and measure against it
-  offline: `download_benchmark("futures", "train")`.
-- **NCORR** is your correlation after a fixed core feature set is projected out, so alpha that
-  survives feature exposure counts for more.
+All three are covariances with the mean-centred target, computed per exped, so none of them is
+bounded by 1.
+
+- **FIT** is a rank covariance: your predictions are ranked, mapped to a standard normal, and
+  FIT is their covariance with the realised forward return.
+- **UNQ** is the same covariance after a **benchmark model's** direction is removed from your
+  predictions, so predictions that merely re-express the benchmark earn nothing. You can
+  download the benchmark and measure against it offline: `download_benchmark("futures", "train")`.
+- **INOV** is the same again with the equal-weight average of a fixed core feature set in place
+  of the benchmark, so signal beyond what those features carry counts for more.
 
 Call `explain_scoring` for the live weights. They are platform settings and they have changed
 before, so no document, this one included, can tell you which term leads. Optimise the round
